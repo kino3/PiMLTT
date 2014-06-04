@@ -22,7 +22,7 @@ em A = {!!} -- cannot solve
 doubleNeg : {A : Set} → A → ¬ ¬ A
 doubleNeg = λ a neg-a → neg-a a
 
-nnem : {A : Set} → (¬ ¬ A) ∨ (¬ ¬ ¬ A)
-nnem = inj₁ (doubleNeg {!!})
+nnem : (A : Set) → (¬ ¬ A) ∨ (¬ ¬ ¬ A)
+nnem A = inj₁ (doubleNeg {!!})
 
 
