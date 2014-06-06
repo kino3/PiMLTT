@@ -6,44 +6,31 @@ module PiMLTT where
 
 -- Chapter 3 Expressions and definitional equality
 
-open import Data.Nat
-open import Data.Char
-open import Relation.Binary.Core
-
-
-
-
--- todo: evaluation 
-
-
 -- arities
 data arity : Set where
-  O : arity
+  O : arity -- instead of 0(zero) 
   _⊗_ : arity → arity → arity
   _↠_ : arity → arity → arity
 
+postulate
+  Variable : arity → Set
+  Value : Set
+
 {-
-Variable : arity → Set
-Variable α = Char
-
-Value : arity → Set
-Value α = ℕ
+record expression : Set₁ where
+  field
+    a : arity
+    e : a → Set
 -}
-Variable : Set
-Variable = Char
-
-Value : Set
-Value = ℕ
-
--- State : Set
--- State = Variable → Value
+data expression (a : arity) : Set where
+  var : Variable a → expression a
 
 data Op : Set where
   + : Op
   - : Op
   * : Op
 
--- 3.8 Definition of what an expression of a certain arity is
+{-
 data Expr : Set where
   var : Variable → Expr
   const : Value → Expr 
@@ -51,12 +38,10 @@ data Expr : Set where
   _[_] : Op → Expr → Expr -- 3.1 Application
   [_]_ : Expr → Expr → Expr -- 3.2 Abstraction 
   _,_ : Expr → Expr → Expr  -- 3.3 Combination
-
+-}
 {-
 equiv : {e : Expr} {x : Expr} → e ≡ ([ x ] e ) [ x ]
 equiv = ?
 -}
 
-getArity : Expr → arity
-getArity (var x) = O
-getArity _ = {!!}
+
