@@ -41,4 +41,7 @@ a₁ , a₂ = {!!}
 -- 7 Selection
 
 
+-- 3.9 Definition of equality between two expressions
 
+data _≡_::_ : {α : arity} → expression α → expression α → arity → Set where
+  var-eq : (α : arity) → {x : variable α} → var x ≡ var x :: α
