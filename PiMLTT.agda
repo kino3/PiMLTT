@@ -6,42 +6,39 @@ module PiMLTT where
 
 -- Chapter 3 Expressions and definitional equality
 
+-- 3.6 Arities
+
 -- arities
 data arity : Set where
   O : arity -- instead of 0(zero) 
   _⊗_ : arity → arity → arity
   _↠_ : arity → arity → arity
 
+-- 3.8 Definition of what an expression of a certain arity is
+
 postulate
-  Variable : arity → Set
-  Value : Set
+  variable : arity → Set
+  value : arity → Set
 
-{-
-record expression : Set₁ where
-  field
-    a : arity
-    e : a → Set
--}
-data expression (a : arity) : Set where
-  var : Variable a → expression a
+data expression (α : arity) : Set where
+  var : variable α → expression α -- 1 Variables
+  const : value α → expression α  -- 2 Primitive constants
 
-data Op : Set where
-  + : Op
-  - : Op
-  * : Op
+-- 3 Defined constants
 
-{-
-data Expr : Set where
-  var : Variable → Expr
-  const : Value → Expr 
-  -- we cannot use '(' and ')' because they were reserved
-  _[_] : Op → Expr → Expr -- 3.1 Application
-  [_]_ : Expr → Expr → Expr -- 3.2 Abstraction 
-  _,_ : Expr → Expr → Expr  -- 3.3 Combination
--}
-{-
-equiv : {e : Expr} {x : Expr} → e ≡ ([ x ] e ) [ x ]
-equiv = ?
--}
+-- 4 Application
+_[_] : {α β : arity} → expression (α ↠ β) → expression α → expression β
+d [ a ] = {!!}
+
+-- 5 Abstraction
+[_]_ : {α β : arity} → variable α → expression β → expression (α ↠ β)
+[ x ] b = {!!}
+
+-- 6 Combination
+_,_ : {α₁ α₂ : arity} → expression α₁ → expression α₂ → expression (α₁ ⊗ α₂)
+a₁ , a₂ = {!!}
+
+-- 7 Selection
+
 
 

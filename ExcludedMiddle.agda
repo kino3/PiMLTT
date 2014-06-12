@@ -26,6 +26,6 @@ doubleNeg2 : {A : Set} → ¬ ¬ A → A
 doubleNeg2 = λ x → {!!} -- cannot solve
 
 nnem : (A : Set) → (¬ ¬ A) ∨ (¬ ¬ ¬ A)
-nnem A = {!!}
+nnem A = [ {!!} , {!!} ]′ {!!}
 
 
