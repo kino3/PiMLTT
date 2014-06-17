@@ -14,38 +14,41 @@ data arity : Set where
   add : List arity → arity
   _↠_ : arity → arity → arity
 
+-- syntax sugar of add
+_⊗_ : arity → List arity → arity
+α ⊗ αl = add (α ∷ αl)
+
 -- 3.8 Definition of what an expression of a certain arity is
---_⊗_ : arity → List arity → arity
-_⊗_ : arity → arity → arity
-x ⊗ y = {!!}
 
 module Expression (
   variable : arity → Set)(
   value : arity → Set
   ) where
 
+ open import Data.Product
+ open import Data.Unit
 
- data expression : arity → Set where
-  -- 1 Variables
-  var : {α : arity} → variable α → expression α 
-  -- 2 Primitive constants
-  const : {α : arity} → value α → expression α  
-  -- 3 Definied constants
-  def-const : {α : arity} → expression α → expression α  
-  -- 4 Application
-  _[_] : {α β : arity} → expression (α ↠ β) → expression α → expression β
-  -- 5 Abstraction 
-  [_]_ : {α β : arity} → variable α → expression β → expression (α ↠ β) 
-  -- 6 Combination
-  --_,_ : {α₁ α₂ : arity} → expression α₁ → expression α₂ → expression (α₁ ⊗ α₂)
-  _,_ : {α₁ α₂ : arity} → expression α₁ → expression α₂ → expression (α₁ ⊗ α₂)
+ mutual
 
--- _[_] : {α β : arity} → expression (α ↠ β) → expression α → expression β
--- a [ x ] = {!!}
- -- 3 Defined constants
- --_≡_ : {α : arity} → expression α → expression α → 
-  -- 7 Selection
-  
+   data expression : arity → Set where
+    -- 1 Variables
+    var : {α : arity} → variable α → expression α 
+    -- 2 Primitive constants
+    const : {α : arity} → value α → expression α  
+    -- 3 Definied constants
+    def-const : {α : arity} → expression α → expression α  
+    -- 4 Application
+    _[_] : {α β : arity} → expression (α ↠ β) → expression α → expression β
+    -- 5 Abstraction 
+    [_]_ : {α β : arity} → variable α → expression β → expression (α ↠ β) 
+    -- 6 Combination
+    mkCombi : {αl : List arity} → expList αl → expression (add αl)
+
+   expList : List arity → Set
+   expList [] = ⊤ -- singleton
+   expList (α ∷ αl) = expression α × expList αl
+    
+  -- 7 Selection  
 
 -- 3.9 Definition of equality between two expressions
 -- use :: instead of : 
