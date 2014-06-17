@@ -25,7 +25,7 @@ module Expression (
   value : arity → Set
   ) where
 
- open import Data.Product
+ open import Data.Product using (_×_)
  open import Data.Unit
 
  mutual
@@ -47,7 +47,10 @@ module Expression (
    expList : List arity → Set
    expList [] = ⊤ -- singleton
    expList (α ∷ αl) = expression α × expList αl
-    
+ 
+ _,_ : {α : arity} {αl : List arity} → expression α → expList αl → expression (α ⊗ αl)
+ a , al = mkCombi (a Data.Product., al)
+   
   -- 7 Selection  
 
 -- 3.9 Definition of equality between two expressions
