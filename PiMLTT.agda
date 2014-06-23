@@ -3,11 +3,16 @@ module PiMLTT where
 -- A formalization of 
 -- "Programming in Martin-Lof's Type Theory"(PiMLTT)
 -----------------------------------------------------
-
--- Chapter 3 Expressions and definitional equality
-
--- 3.6 Arities
 open import Data.List
+
+-----------------------------------------------------
+-- Chapter 3 Expressions and definitional equality
+-----------------------------------------------------
+
+-----------------------------------------------------
+-- 3.6 Arities
+-----------------------------------------------------
+
 -- arities
 data arity : Set where
   O : arity -- instead of 0(zero) 
@@ -18,7 +23,10 @@ data arity : Set where
 _⊗_ : arity → List arity → arity
 α ⊗ αl = add (α ∷ αl)
 
--- 3.8 Definition of what an expression of a certain arity is
+-----------------------------------------------------
+-- 3.8 Definition of 
+--       what an expression of a certain arity is
+-----------------------------------------------------
 
 module Expression (
   variable : arity → Set)(
