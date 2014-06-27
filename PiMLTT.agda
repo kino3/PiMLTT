@@ -35,36 +35,45 @@ module Expression (
 
  open import Data.Product using (_×_)
  open import Data.Unit
+ open import Data.Nat
 
  mutual
 
-   data expression : arity → Set where
+   data expr : arity → Set where
     -- 1 Variables
-    var : {α : arity} → variable α → expression α 
+    var : {α : arity} → variable α → expr α 
     -- 2 Primitive constants
-    const : {α : arity} → value α → expression α  
-    -- 3 Definied constants
-    def-const : {α : arity} → expression α → expression α  
+    const : {α : arity} → value α → expr α  
+    -- 3 Definied constants  TODO:: later
+    -- def-const : {α : arity} → expr α → expr α  
     -- 4 Application
-    _[_] : {α β : arity} → expression (α ↠ β) → expression α → expression β
+    _[_] : {α β : arity} → expr (α ↠ β) → expr α → expr β
     -- 5 Abstraction 
-    [_]_ : {α β : arity} → variable α → expression β → expression (α ↠ β) 
+    [_]_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
     -- 6 Combination
-    mkCombi : {αl : List arity} → expList αl → expression (add αl)
+    mkCombi : {αl : List arity} → exprList αl → expr (add αl)
 
-   expList : List arity → Set
-   expList [] = ⊤ -- singleton
-   expList (α ∷ αl) = expression α × expList αl
+   exprList : List arity → Set
+   exprList [] = ⊤ -- singleton
+   exprList (α ∷ αl) = expr α × exprList αl
  
- _,_ : {α : arity} {αl : List arity} → expression α → expList αl → expression (α ⊗ αl)
+ -- 6 Combination
+ _,_ : {α : arity} {αl : List arity} → expr α → exprList αl → expr (α ⊗ αl)
  a , al = mkCombi (a Data.Product., al)
+ -- TODO:: maybe we dont need mkcombi
    
-  -- 7 Selection  
+ -- 7 Selection
+ -- TODO:: we shouldn't use ℕ since this paper's ℕ start with 1.
+ [_]-_ : {α : arity} {αl : List arity} → exprList αl → ℕ → expr α
+ [ el ]- zero = {!!}
+ [ el ]- suc n = {!!} 
+ 
 
 -- 3.9 Definition of equality between two expressions
 -- use :: instead of : 
 -- TODO:: change ≡
- data _≡_::_ : {α : arity} → expression α → expression α → arity → Set where
+ data _≡_::_ : {α : arity} → expr α → expr α → arity → Set where
   var-eq : (α : arity) → {x : variable α} → var x ≡ var x :: α
   const-eq : (α : arity) → {c : value α} → const c ≡ const c :: α
-  --def-eq : 
+  --def-eq : (α : arity) → {a : value α} → const a ≡ def-const (const a) :: α
+  apply-eq : (α β : arity) → {c : value α} → const c ≡ const c :: α
