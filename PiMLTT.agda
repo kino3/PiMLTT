@@ -48,23 +48,18 @@ module Expression (
    data expr : arity → Set where
     -- 1 Variables
     var : {α : arity} → variable α → expr α 
-
     -- 2 Primitive constants
     const : {α : arity} → value α → expr α  
-
     -- 3 Definied constants
     def-const : (def : definiendum) → expr (arity-of def)
-
     -- 4 Application
     -- TODO I did not understand why I cannot use _[_] (parsing error?)
     apply_to_ : {α β : arity} → expr (α ↠ β) → expr α → expr β
 
     -- 5 Abstraction (lambda)
     <_>_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
-
     -- 6 Combination
     _,_ : {α : arity} {αl : List arity} → expr α → exprList αl → expr (α ⊗ αl)
-
     -- 7 Selection TODO: precise def.
     -- [_]-_ : {α : arity} {αl1 αl2 : List arity} → exprList αl1 × expr α × exprList αl2 → expr α
    
@@ -88,3 +83,14 @@ module Expression (
   apply-eq : {α β : arity} {a a' : expr (α ↠ β)} {b b' : expr α} 
              → a ≡ a' ∶ (α ↠ β) → b ≡ b' ∶ α 
              → (apply a to b) ≡ (apply a' to b') ∶ β
+
+  -- 5. Application 2. (β-rule).
+
+  -- If x is avariable of arity α, a an expression of arity α
+  -- b an expression of arity β, then
+  -- ((x)b)(a) ≡ b[x := a] : β
+  -- provided that no free variables in a becomes bound in b[x := a].
+
+  -- 6. Abstraction 1. (ξ-rule). (\xi)
+  
+   
