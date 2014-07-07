@@ -77,18 +77,13 @@ module Expression (
 -----------------------------------------------------
 -- 3.9 Definition of equality between two expressions
 -----------------------------------------------------
- data _≡_∶_ : {α : arity} 
-   → expr α → expr α → arity → Set where
-
+ data _≡_∶_ : {α : arity} → expr α → expr α → arity → Set where
   -- 1. Variables.
   var-eq : {α : arity} → (x : variable α) → var x ≡ var x ∶ α
-
   -- 2. Constants.
   const-eq : {α : arity} → (c : value α) → const c ≡ const c ∶ α
-
   -- 3. Definiendum ≡ Definiens. TODO
   def-eq : {α : arity} {a : expr α} → a ≡ def-const (d {!!} α) ∶ α
-
   -- 4. Application 1.
   apply-eq : {α β : arity} {a a' : expr (α ↠ β)} {b b' : expr α} 
              → a ≡ a' ∶ (α ↠ β) → b ≡ b' ∶ α 
