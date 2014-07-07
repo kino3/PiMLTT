@@ -37,6 +37,12 @@ module Expression (
  open import Data.Unit
  open import Data.Nat
 
+ data definiendum : Set where
+  d : ℕ → arity → definiendum
+
+ arity-of : definiendum → arity
+ arity-of (d _ a) = a
+
  mutual
 
    data expr : arity → Set where
@@ -44,8 +50,9 @@ module Expression (
     var : {α : arity} → variable α → expr α 
     -- 2 Primitive constants
     const : {α : arity} → value α → expr α  
-    -- 3 Definied constants  TODO:: later
-    -- def-const : {α : arity} → expr α → expr α  
+    -- 3 Definied constants
+    definien : (def : definiendum) → expr (arity-of def)
+     
     -- 4 Application
     _[_] : {α β : arity} → expr (α ↠ β) → expr α → expr β
     -- 5 Abstraction 
@@ -71,7 +78,6 @@ module Expression (
 
 -- 3.9 Definition of equality between two expressions
 -- use :: instead of : 
--- TODO:: change ≡
  data _≡_::_ : {α : arity} → expr α → expr α → arity → Set where
   var-eq : (α : arity) → {x : variable α} → var x ≡ var x :: α
   const-eq : (α : arity) → {c : value α} → const c ≡ const c :: α
