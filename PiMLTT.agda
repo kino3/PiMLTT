@@ -52,25 +52,18 @@ module Expression (
     const : {α : arity} → value α → expr α  
     -- 3 Definied constants
     definien : (def : definiendum) → expr (arity-of def)
-     
     -- 4 Application
     _[_] : {α β : arity} → expr (α ↠ β) → expr α → expr β
     -- 5 Abstraction 
     [_]_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
     -- 6 Combination
-    mkCombi : {αl : List arity} → exprList αl → expr (add αl)
+    _,_ : {α : arity} {αl : List arity} → expr α → exprList αl → expr (α ⊗ αl)
 
    exprList : List arity → Set
    exprList [] = ⊤ -- singleton
    exprList (α ∷ αl) = expr α × exprList αl
- 
- -- 6 Combination
- _,_ : {α : arity} {αl : List arity} → expr α → exprList αl → expr (α ⊗ αl)
- a , al = mkCombi (a Data.Product., al)
- -- TODO:: maybe we dont need mkcombi
    
  -- 7 Selection
- -- TODO:: we shouldn't use ℕ since this paper's ℕ start with 1.
  [_]-_ : {α : arity} {αl : List arity} → exprList αl → ℕ → expr α
  [ el ]- zero = {!!}
  [ el ]- suc n = {!!} 
