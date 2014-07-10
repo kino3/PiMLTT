@@ -23,6 +23,15 @@ data arity : Set where
 _⊗_ : arity → List arity → arity
 α ⊗ αl = add (α ∷ αl)
 
+-- arity operation
+open import Data.Nat
+get : List arity → ℕ → arity
+get [] zero = {!!}
+get [] (suc i) = {!!}
+get (x ∷ l) zero = x
+get (x ∷ l) (suc i) = get l i
+
+infixr 10 _⊗_
 -----------------------------------------------------
 -- 3.8 Definition of 
 --       what an expression of a certain arity is
@@ -30,7 +39,7 @@ _⊗_ : arity → List arity → arity
 
 module Expression (
   variable : arity → Set)(
-  value : arity → Set
+   value : arity → Set
   ) where
 
  open import Data.Product using (_×_)
@@ -59,19 +68,35 @@ module Expression (
     -- 5 Abstraction (lambda)
     <_>_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
     -- 6 Combination
-    _,_ : {α : arity} {αl : List arity} → expr α → exprList αl → expr (α ⊗ αl)
-    -- 7 Selection TODO: precise def.
-    -- [_]-_ : {α : arity} {αl1 αl2 : List arity} → exprList αl1 × expr α × exprList αl2 → expr α
-   
+    {-
+      If a₁ is an expression of arity α₁, 
+         a₂ is an expression of arity α₂, ... 
+         and aₙ is an expression of arity αₙ, 2 ≤ n, then
+         a₁, a₂, . . . , aₙ is an expression of arity α₁⊗α₂⊗...⊗αₙ.
+    -}
+    _,_ : {α₁ : arity} {α₂αₙ : List arity} → expr α₁ → exprList α₂αₙ → expr (α₁ ⊗ α₂αₙ)
+    
    infixr 10 _,_ -- TODO; right?
+   infixl 12 <_>_
 
    exprList : List arity → Set
    exprList [] = ⊤ -- singleton
    exprList (α ∷ αl) = expr α × exprList αl
 
+ -- 7 Selection TODO: precise def.
+ -- If a is an expression of arity α₁ ⊗...⊗ αₙ and 1 ≤ i ≤ n, then
+ -- (a).i
+ -- is an expression of arity αᵢ.
+ -- [_]-_ : (a : expr α₁ ⊗...⊗ αₙ) → (i : ℕ) → expr αᵢ
+ --[_]-_ : {α₁ αₙ : arity} {α₂αₙ : List arity} → (a : expr (α₁ ⊗ α₂αₙ)) → (i : ℕ) → expr αₙ
+ [_]-_ : {αᵢ : arity} {α₁αₙ : List arity} → expr (add α₁αₙ) → ℕ → expr αᵢ
+ [ a ]- i = {!!}
+
+
 -----------------------------------------------------
 -- 3.9 Definition of equality between two expressions
 -----------------------------------------------------
+ infix 5 _≡_∶_
  data _≡_∶_ : {α : arity} → expr α → expr α → arity → Set where
   -- 1. Variables.
   var-eq : {α : arity} → (x : variable α) → var x ≡ var x ∶ α
@@ -86,11 +111,13 @@ module Expression (
 
   -- 5. Application 2. (β-rule).
 
-  -- If x is avariable of arity α, a an expression of arity α
+  -- If x is a variable of arity α, a an expression of arity α
   -- b an expression of arity β, then
   -- ((x)b)(a) ≡ b[x := a] : β
   -- provided that no free variables in a becomes bound in b[x := a].
 
   -- 6. Abstraction 1. (ξ-rule). (\xi)
+  ξ-rule : {α β : arity} {x : variable α} {b b' : expr β} 
+           → < x > b ≡ < x > b' ∶ α ↠ β
   
-   
+  -- 
