@@ -12,19 +12,27 @@ open import Data.List
 -----------------------------------------------------
 -- 3.6 Arities
 -----------------------------------------------------
+open import Data.Nat
 
+data NEVector (X : Set) : ℕ → Set where
+  singleton : X → NEVector X zero
+  _⊗_ : {n : ℕ} → X → NEVector X n → NEVector X (suc n)
+
+open import Data.Vec
 -- arities
 data arity : Set where
-  O : arity -- instead of 0(zero) 
-  add : List arity → arity
+  --O : arity -- instead of 0(zero) 
+  --add : List arity → arity
+  [[_]] : {n : ℕ} → Vec arity n → arity
   _↠_ : arity → arity → arity
 
+O = [[ [] ]]
 -- syntax sugar of add
-_⊗_ : arity → List arity → arity
-α ⊗ αl = add (α ∷ αl)
+--_⊗_ : arity → NEVector arity  → arity
+--α ⊗ αl = add (α ∷ αl)
 
 -- arity operation
-open import Data.Nat
+
 get : List arity → ℕ → arity
 get [] zero = {!!}
 get [] (suc i) = {!!}
@@ -55,33 +63,20 @@ module Expression (
  mutual
 
    data expr : arity → Set where
-    -- 1 Variables
     var : {α : arity} → variable α → expr α 
-    -- 2 Primitive constants
     const : {α : arity} → value α → expr α  
-    -- 3 Definied constants
     def-const : (def : definiendum) → expr (arity-of def)
-    -- 4 Application
-    -- TODO I did not understand why I cannot use _[_] (parsing error?)
     apply_to_ : {α β : arity} → expr (α ↠ β) → expr α → expr β
-
-    -- 5 Abstraction (lambda)
     <_>_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
-    -- 6 Combination
-    {-
-      If a₁ is an expression of arity α₁, 
-         a₂ is an expression of arity α₂, ... 
-         and aₙ is an expression of arity αₙ, 2 ≤ n, then
-         a₁, a₂, . . . , aₙ is an expression of arity α₁⊗α₂⊗...⊗αₙ.
-    -}
-    _,_ : {α₁ : arity} {α₂αₙ : List arity} → expr α₁ → exprList α₂αₙ → expr (α₁ ⊗ α₂αₙ)
+    _,_ : {α₁ : arity} {n : ℕ} {α₂αₙ : NEVector arity n} 
+      → expr α₁ → exprList α₂αₙ → expr [[ α₁ ⊗ α₂αₙ ]]
     
    infixr 10 _,_ -- TODO; right?
    infixl 12 <_>_
 
-   exprList : List arity → Set
-   exprList [] = ⊤ -- singleton
-   exprList (α ∷ αl) = expr α × exprList αl
+   exprList : {n : ℕ} → NEVector arity n → Set
+   exprList (singleton x) = ⊤ -- singleton
+   exprList (α ⊗ αl) = expr α × exprList αl
 
  -- 7 Selection TODO: precise def.
  -- If a is an expression of arity α₁ ⊗...⊗ αₙ and 1 ≤ i ≤ n, then
@@ -89,8 +84,9 @@ module Expression (
  -- is an expression of arity αᵢ.
  -- [_]-_ : (a : expr α₁ ⊗...⊗ αₙ) → (i : ℕ) → expr αᵢ
  --[_]-_ : {α₁ αₙ : arity} {α₂αₙ : List arity} → (a : expr (α₁ ⊗ α₂αₙ)) → (i : ℕ) → expr αₙ
- [_]-_ : {αᵢ : arity} {α₁αₙ : List arity} → expr (add α₁αₙ) → ℕ → expr αᵢ
- [ a ]- i = {!!}
+ [_]-_ : {αᵢ : arity} {n : ℕ} {α₁αₙ : NEVector arity n} → expr ([[ α₁αₙ ]]) → ℕ → expr αᵢ
+ [ a ]- zero = {!!}
+ [ a ]- suc i = {!!}
 
 
 -----------------------------------------------------
