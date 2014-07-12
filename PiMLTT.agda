@@ -25,15 +25,10 @@ data NEVector (X : Set) : ℕ → Set where
 
 -- arities
 data arity : Set where
-  --O : arity -- instead of 0(zero) 
-  --add : List arity → arity
+  O : arity -- instead of 0(zero) 
+  _⊗_ : {n : ℕ} → arity → Vec arity n → arity
   [[_]] : {n : ℕ} → Vec arity n → arity
   _↠_ : arity → arity → arity
-
-O = [[ [] ]]
--- syntax sugar of add
---_⊗_ : arity → NEVector arity  → arity
---α ⊗ αl = add (α ∷ αl)
 
 
 -----------------------------------------------------
@@ -61,13 +56,12 @@ module Expression (
     def-const : (def : definiendum) → expr (arity-of def)
     apply_to_ : {α β : arity} → expr (α ↠ β) → expr α → expr β
     <_>_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
-    --_,_ : {α₁ : arity} {n : ℕ} {α₂αₙ : Vec arity n} 
-    --  → expr α₁ → exprList α₂αₙ → expr [[ α₁ ⊗ α₂αₙ ]]
+    _,_ : {α₁ : arity} {n : ℕ} {α₂αₙ : Vec arity n} 
+      → expr α₁ → exprList α₂αₙ → expr (α₁ ⊗ α₂αₙ)
     
    exprList : {n : ℕ} → Vec arity n → Set
-   exprList v = {!!}
-   --exprList (singleton x) = ⊤ -- singleton
-   --exprList (α ⊗ αl) = expr α × exprList αl
+   exprList [] = ⊤
+   exprList (α ∷ αl) = expr α × exprList αl
 
  -- 7 Selection TODO: precise def.
  -- If a is an expression of arity α₁ ⊗...⊗ αₙ and 1 ≤ i ≤ n, then
