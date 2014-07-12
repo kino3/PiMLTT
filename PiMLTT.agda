@@ -3,7 +3,10 @@ module PiMLTT where
 -- A formalization of 
 -- "Programming in Martin-Lof's Type Theory"(PiMLTT)
 -----------------------------------------------------
-open import Data.List
+open import Data.Vec
+open import Data.Nat
+open import Data.Product using (_×_)
+open import Data.Unit
 
 -----------------------------------------------------
 -- Chapter 3 Expressions and definitional equality
@@ -12,13 +15,14 @@ open import Data.List
 -----------------------------------------------------
 -- 3.6 Arities
 -----------------------------------------------------
-open import Data.Nat
 
+{-
 data NEVector (X : Set) : ℕ → Set where
   singleton : X → NEVector X zero
   _⊗_ : {n : ℕ} → X → NEVector X n → NEVector X (suc n)
+-}
 
-open import Data.Vec
+
 -- arities
 data arity : Set where
   --O : arity -- instead of 0(zero) 
@@ -31,15 +35,7 @@ O = [[ [] ]]
 --_⊗_ : arity → NEVector arity  → arity
 --α ⊗ αl = add (α ∷ αl)
 
--- arity operation
 
-get : List arity → ℕ → arity
-get [] zero = {!!}
-get [] (suc i) = {!!}
-get (x ∷ l) zero = x
-get (x ∷ l) (suc i) = get l i
-
-infixr 10 _⊗_
 -----------------------------------------------------
 -- 3.8 Definition of 
 --       what an expression of a certain arity is
@@ -50,9 +46,6 @@ module Expression (
    value : arity → Set
   ) where
 
- open import Data.Product using (_×_)
- open import Data.Unit
- open import Data.Nat
 
  data definiendum : Set where
   d : ℕ → arity → definiendum --TODO why need ℕ?
@@ -68,15 +61,13 @@ module Expression (
     def-const : (def : definiendum) → expr (arity-of def)
     apply_to_ : {α β : arity} → expr (α ↠ β) → expr α → expr β
     <_>_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
-    _,_ : {α₁ : arity} {n : ℕ} {α₂αₙ : NEVector arity n} 
-      → expr α₁ → exprList α₂αₙ → expr [[ α₁ ⊗ α₂αₙ ]]
+    --_,_ : {α₁ : arity} {n : ℕ} {α₂αₙ : Vec arity n} 
+    --  → expr α₁ → exprList α₂αₙ → expr [[ α₁ ⊗ α₂αₙ ]]
     
-   infixr 10 _,_ -- TODO; right?
-   infixl 12 <_>_
-
-   exprList : {n : ℕ} → NEVector arity n → Set
-   exprList (singleton x) = ⊤ -- singleton
-   exprList (α ⊗ αl) = expr α × exprList αl
+   exprList : {n : ℕ} → Vec arity n → Set
+   exprList v = {!!}
+   --exprList (singleton x) = ⊤ -- singleton
+   --exprList (α ⊗ αl) = expr α × exprList αl
 
  -- 7 Selection TODO: precise def.
  -- If a is an expression of arity α₁ ⊗...⊗ αₙ and 1 ≤ i ≤ n, then
@@ -84,7 +75,7 @@ module Expression (
  -- is an expression of arity αᵢ.
  -- [_]-_ : (a : expr α₁ ⊗...⊗ αₙ) → (i : ℕ) → expr αᵢ
  --[_]-_ : {α₁ αₙ : arity} {α₂αₙ : List arity} → (a : expr (α₁ ⊗ α₂αₙ)) → (i : ℕ) → expr αₙ
- [_]-_ : {αᵢ : arity} {n : ℕ} {α₁αₙ : NEVector arity n} → expr ([[ α₁αₙ ]]) → ℕ → expr αᵢ
+ [_]-_ : {αᵢ : arity} {n : ℕ} {α₁αₙ : Vec arity n} → expr ([[ α₁αₙ ]]) → ℕ → expr αᵢ
  [ a ]- zero = {!!}
  [ a ]- suc i = {!!}
 
