@@ -27,9 +27,8 @@ data NEVector (X : Set) : ℕ → Set where
 data arity : Set where
   O : arity -- instead of 0(zero) 
   _⊗_ : {n : ℕ} → arity → Vec arity n → arity
-  [[_]] : {n : ℕ} → Vec arity n → arity
+  --[[_]] : {n : ℕ} → Vec arity n → arity
   _↠_ : arity → arity → arity
-
 
 -----------------------------------------------------
 -- 3.8 Definition of 
@@ -53,7 +52,7 @@ module Expression (
    data expr : arity → Set where
     var : {α : arity} → variable α → expr α 
     const : {α : arity} → value α → expr α  
-    def-const : (def : definiendum) → expr (arity-of def)
+    --def-const : (def : definiendum) → expr (arity-of def)
     apply_to_ : {α β : arity} → expr (α ↠ β) → expr α → expr β
     <_>_ : {α β : arity} → variable α → expr β → expr (α ↠ β) 
     _,_ : {α₁ : arity} {n : ℕ} {α₂αₙ : Vec arity n} 
@@ -63,15 +62,19 @@ module Expression (
    exprList [] = ⊤
    exprList (α ∷ αl) = expr α × exprList αl
 
+ + = expr ((O ⊗ (O ∷ [])) ↠ O)
+
  -- 7 Selection TODO: precise def.
  -- If a is an expression of arity α₁ ⊗...⊗ αₙ and 1 ≤ i ≤ n, then
  -- (a).i
  -- is an expression of arity αᵢ.
- -- [_]-_ : (a : expr α₁ ⊗...⊗ αₙ) → (i : ℕ) → expr αᵢ
- --[_]-_ : {α₁ αₙ : arity} {α₂αₙ : List arity} → (a : expr (α₁ ⊗ α₂αₙ)) → (i : ℕ) → expr αₙ
- [_]-_ : {αᵢ : arity} {n : ℕ} {α₁αₙ : Vec arity n} → expr ([[ α₁αₙ ]]) → ℕ → expr αᵢ
- [ a ]- zero = {!!}
- [ a ]- suc i = {!!}
+{-
+ [_]-_ : {αᵢ α₁ : arity} {n : ℕ} {α₂αₙ : Vec arity n} → expr (α₁ ⊗ α₂αₙ) → ℕ → expr αᵢ
+ [ var x ]- i = {!!}
+ [ const x ]- i = {!!}
+ [ apply a to a₁ ]- i = {!!}
+ [ a , x ]- i = {!!}
+-}
 
 
 -----------------------------------------------------
@@ -84,7 +87,7 @@ module Expression (
   -- 2. Constants.
   const-eq : {α : arity} → (c : value α) → const c ≡ const c ∶ α
   -- 3. Definiendum ≡ Definiens. TODO
-  def-eq : {α : arity} {a : expr α} → a ≡ def-const (d {!!} α) ∶ α
+  --def-eq : {α : arity} {a : expr α} → a ≡ def-const (d {!!} α) ∶ α
   -- 4. Application 1.
   apply-eq : {α β : arity} {a a' : expr (α ↠ β)} {b b' : expr α} 
              → a ≡ a' ∶ (α ↠ β) → b ≡ b' ∶ α 
