@@ -19,7 +19,6 @@ _⊗_ : arity → arity → arity
 a ⊗ [[ xs ]] = [[ a ∷ xs ]]
 a ⊗ (b ↠ c) = [[ a ∷ b ↠ c ∷ [] ]]
 
-
 Thm : -- justification of the def. of ⊗
  ∀ (a : arity) →
  a ≣ O ⊎
@@ -44,13 +43,10 @@ nth [[ as ]] k = nth' as k where
   nth' {suc n} (a ∷ as) (suc h) = nth' as h
 nth (a ↠ b) _ = a ↠ b
 
--- 3.8 Definition of what an expression of a certain arity is
 module Expression (Val : arity → Set) where
-
  data expr : arity → Set where
     var : {α : arity} → String → expr α 
     const : {α : arity} → Val α → expr α
-    -- TODO 3. Defined Constants
     _′_ : {α β : arity} → expr (α ↠ β) → expr α → expr β
     <_∈_>_ : {β : arity} → String → (α : arity) → expr β → expr (α ↠ β) 
     _,_ : {α : arity} {n : ℕ} {as : Vec arity n} →
@@ -59,23 +55,26 @@ module Expression (Val : arity → Set) where
       expr α → (k : Fin (length α)) → expr (nth α k)
  infixr 10 _,_
  infixl 12 <_∈_>_
+ open import Data.List
+ assign' : {α β : arity} → expr β → List (String × arity) → String → expr α → expr β
+ assign' (var x) lv v e = {!!}
+ assign' (const x) lv v e = const x
+ assign' (x ′ x₁) lv v e = {!!}
+ assign' (< x ∈ α > x₁) lv v e = {!!} -- α-conv
+ assign' (x , x₁) lv v e = {!!}
+ assign' ([ x ]• k) lv v e = {!!}
+
+ assign : {α β : arity} → expr β → String → expr α → expr β
+ assign e v e' = assign' e [] v e'
 
  -- substitution
  _[_≔_] : {α β : arity} → expr β → String → expr α → expr β
- var x [ x₁ ≔ a ] = var x
- const x [ x₁ ≔ a ] = const x
- (b ′ b₁) [ x ≔ a ] = {!!}
- (< x ∈ α₁ > b) [ x₁ ≔ a ] = {!!}
- (b , b₁) [ x ≔ a ] = {!!}
- ([ b ]• k) [ x ≔ a ] = {!!}
+ _[_≔_] {α} {β} d x e = (< x ∈ α > d) ′ e
  -- TODO provided that no free variables in a becomes bound in b [ x ≔ a ].
-
- -- 3.9 Definition of equality between two expressions
  infix 5 _≡_∈_
  data _≡_∈_ : {α : arity} → expr α → expr α → arity → Set where
    var-eq : {α : arity} → {x : String} → var {α} x ≡ var x ∈ α
    const-eq : {α : arity} → (c : Val α) → const c ≡ const c ∈ α
-   -- TODO 3. definiendum ≡ definiens.
    apply-eq : {α β : arity} {a a' : expr (α ↠ β)} {b b' : expr α} →
      a ≡ a' ∈ (α ↠ β) → b ≡ b' ∈ α →
      (a ′ b) ≡ (a' ′ b') ∈ β
