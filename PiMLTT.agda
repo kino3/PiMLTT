@@ -7,6 +7,8 @@ open import Data.Sum
 open import Data.Product
 open import Relation.Binary.Core renaming (_≡_ to _≣_)
 
+-- 3.6 Arities
+-- Definition 1
 data arity : Set where
   [[_]] : {n : ℕ} → Vec arity n → arity
   _↠_ : arity → arity → arity
@@ -42,29 +44,43 @@ nth [[ as ]] k = nth' as k where
   nth' {suc n} (a ∷ as) (suc h) = nth' as h
 nth (a ↠ b) _ = a ↠ b
 
-module Expression (Var : arity → Set) (Val : arity → Set) where
- open import Data.Product using (_×_)
- open import Data.Unit
- open import Data.Nat
+-- 3.8 Definition of what an expression of a certain arity is
+module Expression (Val : arity → Set) where
+
  data expr : arity → Set where
     var : {α : arity} → String → expr α 
-    const : {α : arity} → Val α → expr α  
+    const : {α : arity} → Val α → expr α
+    -- TODO 3. Defined Constants
     _′_ : {α β : arity} → expr (α ↠ β) → expr α → expr β
     <_∈_>_ : {β : arity} → String → (α : arity) → expr β → expr (α ↠ β) 
     _,_ : {α : arity} {n : ℕ} {as : Vec arity n} →
       expr α → expr [[ as ]] → expr [[ α ∷ as ]]
-    [_]•_ : {n : ℕ} {a : arity} →
-      expr a → (k : Fin (length a)) → expr (nth a k)
+    [_]•_ : {n : ℕ} {α : arity} →
+      expr α → (k : Fin (length α)) → expr (nth α k)
  infixr 10 _,_
  infixl 12 <_∈_>_
 
+ -- substitution
+ _[_≔_] : {α β : arity} → expr β → String → expr α → expr β
+ var x [ x₁ ≔ a ] = var x
+ const x [ x₁ ≔ a ] = const x
+ (b ′ b₁) [ x ≔ a ] = {!!}
+ (< x ∈ α₁ > b) [ x₁ ≔ a ] = {!!}
+ (b , b₁) [ x ≔ a ] = {!!}
+ ([ b ]• k) [ x ≔ a ] = {!!}
+ -- TODO provided that no free variables in a becomes bound in b [ x ≔ a ].
+
+ -- 3.9 Definition of equality between two expressions
  infix 5 _≡_∈_
  data _≡_∈_ : {α : arity} → expr α → expr α → arity → Set where
    var-eq : {α : arity} → {x : String} → var {α} x ≡ var x ∈ α
    const-eq : {α : arity} → (c : Val α) → const c ≡ const c ∈ α
-   apply-eq : {α β : arity} {a0 a1 : expr (α ↠ β)} {b0 b1 : expr α} →
-     a0 ≡ a1 ∈ (α ↠ β) → b0 ≡ b1 ∈ α →
-     (a0 ′ b0) ≡ (a1 ′ b1) ∈ β
+   -- TODO 3. definiendum ≡ definiens.
+   apply-eq : {α β : arity} {a a' : expr (α ↠ β)} {b b' : expr α} →
+     a ≡ a' ∈ (α ↠ β) → b ≡ b' ∈ α →
+     (a ′ b) ≡ (a' ′ b') ∈ β
+   β-rule : {α β : arity} {x : String} {b : expr β} {a : expr α}
+      → (< x ∈ α > b) ′ a ≡ b [ x ≔ a ] ∈ β 
    ξ-rule : {α β : arity} {x : String} {b b' : expr β} →
      b ≡ b' ∈ β →  < x ∈ α > b ≡ < x ∈ α > b' ∈ α ↠ β
-
+   -- α-rule
