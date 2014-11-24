@@ -1,5 +1,9 @@
 module MLTT where
-
+{-
+Arityの定義を当初のもの(論文と同じ定義)
+に戻して2014.09から書きなおしているもの。
+なぜ論文と異なる定義が必要だったのか思いだすのが主目的。
+-}
 open import Data.String
 open import Data.Nat
 open import Arity
