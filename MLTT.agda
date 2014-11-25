@@ -14,16 +14,24 @@ data Var : Arity → Set where
 hoge : Var O
 hoge = v "x"
 
+open import Data.Vec
+open import Data.Fin
 data Expr : Arity → Set where
-  var : {α : Arity} → Var α → Expr α 
+  var   : {α : Arity} → Var α → Expr α 
   const : {α : Arity} → ℕ → Expr α
   -- TODO defined constants
-  _[_] : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
-  <_>_ : {α β : Arity} → Var α → Expr β → Expr (α ↠ β) 
-    --_,_ : {α : Arity} {n : ℕ} {as : Vec Arity n} → Expr α → Expr [[ as ]] → Expr [[ α ∷ as ]]
-    --[_]•_ : {n : ℕ} {α : Arity} → Expr α → (k : Fin (length α)) → Expr (nth α k)
- --infixr 10 _,_
- --infixl 12 <_∈_>_
+  _[_]  : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
+  <_>_  : {α β : Arity} → Var α → Expr β → Expr (α ↠ β) 
+  _,_   : {α1 α2 : Arity} 
+          → Expr α1 
+          → Expr α2 
+          → Expr (α1 ⊗ α2)
+  [_]•_ : {n : ℕ} {α : Arity} 
+          → Expr α 
+          → (k : Fin (length α)) 
+          → Expr (nth α k)
+infixr 10 _,_
+infixl 12 <_>_
 
 c4 = const {O} 4
 

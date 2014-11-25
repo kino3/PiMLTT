@@ -16,16 +16,22 @@ ex2 = ((O ↠ O) ⊗ O ⊗ O) ↠ O
 ex3 = O ⊗ O ⊗ O
 -- TODO two arities are equal only if they are syntactically identical.
 
-length : Arity → ℕ
+length : Arity → ℕ --TODO (this is 0<=length, but 1<=length)
 length O = suc zero
 length (a1 ⊗ a2) = length a1 + length a2
 length (a ↠ b) = suc zero
 
 a = length ex3
 
-
+open import Data.Fin hiding (_+_;compare)
+open import Relation.Nullary.Core
+nth : {a : Arity} → Fin (length a) → Arity
+nth {O} n = O
+nth {a1 ⊗ a2} n with length a1 ≤? (toℕ n)
+... | yes p = nth {a2} (reduce≥ n p) 
+... | no ¬p = nth {a1} {!!}
+nth {a1 ↠ a2} n = a1 ↠ a2
 {-
-nth : (a : Arity) → Fin (length a) → Arity
 nth [[ as ]] k = nth' as k where
   nth' : {n : ℕ} → (as : Vec Arity n) → Fin (length [[ as ]]) → Arity
   nth' {0} [] zero = O
