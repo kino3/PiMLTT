@@ -1,17 +1,5 @@
 module PiMLTT where
 
-{-
-以下は標準ライブラリからの引用。
-これをPiMLTT.agdaで改めて定義していた？
-
-open import Data.List using (List)
-open import Level hiding (suc;zero)
-data All {a p} {A : Set a}
-         (P : A → Set p) : List A → Set (p ⊔ a) where
-  []  : All P []
-  _∷_ : ∀ {x xs} (px : P x) (pxs : All P xs) → All P (x ∷ xs)
--}
-
 module Arity where
   open import Data.Nat hiding (_⊔_)
   open import Data.Vec
@@ -66,6 +54,7 @@ module Expression (Val : Arity → Set) where
  data Expr : Arity → Set where
     var    : {α : Arity} → String → Expr α 
     const  : {α : Arity} → Val α → Expr α
+    -- TODO def-const
     _′_    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
     <_∈_>_ : {β : Arity} → String → (α : Arity) → Expr β → Expr (α ↠ β) 
     _,_    : {α : Arity} {n : ℕ} {as : Vec Arity n} →
@@ -76,23 +65,28 @@ module Expression (Val : Arity → Set) where
  infixl 12 <_∈_>_
 
  open import Data.List
- assign' : {α β : Arity} → Expr β → List (String × Arity) → String → Expr α → Expr β
- assign' (var x) lv v e = {!!}
- assign' (const x) lv v e = const x
- assign' (x ′ x₁) lv v e = {!!}
- assign' (< x ∈ α > x₁) lv v e = {!!} -- α-conv
- assign' (x , x₁) lv v e = {!!}
- assign' ([ x ]• k) lv v e = {!!}
+ assign' : {α β : Arity} → Expr β → 
+             List (String × Arity) → String → Expr α → Expr β
+ assign' (var str)      lv v e = var str
+ assign' (const b)      lv v e = const b
+ assign' (d ′ a)        lv v e = {!!}
+ assign' (< x ∈ α > b)  lv v e = {!!} -- α-conv
+ assign' (a , as)       lv v e = {!!}
+ assign' ([ a ]• i)     lv v e = {!!}
+
+ hoge : List (String × Arity)
+ hoge = ("x" , O) ∷ ("y" ,  O) ∷ []
 
  -- substitution
  _[_≔_] : {α β : Arity} → Expr β → String → Expr α → Expr β
- _[_≔_] {α} {β} d x e = (< x ∈ α > d) ′ e
-
+ _[_≔_] {α} {β} b x a = assign' b [] x a
  -- TODO provided that no free variables in a becomes bound in b [ x ≔ a ].
+
  infix 5 _≡_∈_
  data _≡_∈_ : {α : Arity} → Expr α → Expr α → Arity → Set where
    var-eq   : {α : Arity} → {x : String} → var {α} x ≡ var x ∈ α
    const-eq : {α : Arity} → (c : Val α) → const c ≡ const c ∈ α
+   -- TODO: def-eq
    apply-eq : {α β : Arity} {a a' : Expr (α ↠ β)} {b b' : Expr α} →
                 a ≡ a' ∈ (α ↠ β) → b ≡ b' ∈ α →
                 (a ′ b) ≡ (a' ′ b') ∈ β
