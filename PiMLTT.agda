@@ -59,20 +59,26 @@ module Expression (Val : Arity → Set) where
     <_∈_>_ : {β : Arity} → String → (α : Arity) → Expr β → Expr (α ↠ β) 
     _,_    : {α : Arity} {n : ℕ} {as : Vec Arity n} →
                Expr α → Expr [[ as ]] → Expr [[ α ∷ as ]]
-    [_]•_  : {n : ℕ} {α : Arity} →
+    [_]•_  : {α : Arity} →
                Expr α → (k : Fin (length α)) → Expr (nth α k)
  infixr 10 _,_
  infixl 12 <_∈_>_
 
  open import Data.List
+ open import Data.Bool
  assign' : {α β : Arity} → Expr β → 
              List (String × Arity) → String → Expr α → Expr β
- assign' (var str)      lv v e = var str
- assign' (const b)      lv v e = const b
- assign' (d ′ a)        lv v e = {!!}
- assign' (< x ∈ α > b)  lv v e = {!!} -- α-conv
- assign' (a , as)       lv v e = {!!}
- assign' ([ a ]• i)     lv v e = {!!}
+ assign' (var str)      [] v e with str == v
+ ... | true  = {!!} 
+ ... | false = var str
+ assign' (const b)      [] v e = const b
+ assign' (d ′ a)        [] v e = d ′ (assign' a [] v e)
+ assign' (< x ∈ α > b)  [] v e with x == v -- = {!!} -- α-conv
+ ... | true  = {!!} -- we need α-conversion? which change x to another letter.
+ ... | false = (< v ∈ {!!} > (< x ∈ α > b)) ′ e
+ assign' (a , as)       [] v e = assign' a [] v e , assign' as [] v e
+ assign' ([ a ]• i)     [] v e = [ assign' a [] v e ]• i
+ assign' x        (y ∷ ys) v e = {!!}
 
  hoge : List (String × Arity)
  hoge = ("x" , O) ∷ ("y" ,  O) ∷ []
