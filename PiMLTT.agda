@@ -67,15 +67,8 @@ module Expression (Val : Arity → Set) where
    field
      Label : String
 
- _=v_ : {α β : Arity} → Var α → Var β → Bool
- _=v_ {[[ x ]]} {[[ x₁ ]]} v1 v2 = Var.Label v1 == Var.Label v2
- _=v_ {[[ x ]]} {β ↠ β₁} v1 v2 = false
- _=v_ {α ↠ α₁} {[[ x ]]} v1 v2 = false
- _=v_ {α ↠ α₁} {β ↠ β₁} v1 v2 = {!!}
-
- -- Constants.
+ -- Constants. TODO: use this definition instead of Val
  data Const : Arity → Set where
- --todo 
 
  data Expr : Arity → Set where
     var    : {α : Arity} → Var α → Expr α 
@@ -91,18 +84,30 @@ module Expression (Val : Arity → Set) where
  infixl 12 <_>_
 
  open import Data.List
- open import Data.Bool
+
+ free-variables : {β : Arity} → Expr β → List (String × Arity)
+ free-variables {β} (var x) = ((Var.Label x) , β) ∷ []
+ free-variables (const x)   = []
+ free-variables (a↠b ′ a)   = free-variables a
+ free-variables (< x > e)   = dropWhile (λ v → proj₁ v == Var.Label x) (free-variables e)
+ free-variables (a , as)    = free-variables a Data.List.++ free-variables as
+ free-variables ([ e ]• k)  = free-variables e
+ -- TODO think duplication?
+ fv = free-variables
+
  assign' : {α β : Arity} → Expr β → 
              List (String × Arity) → Var α → Expr α → Expr β
- assign' (var x) [] v e with x =v v
- ... | true = {!!}
+ assign' (var x) [] v e with Var.Label x == Var.Label v
+ ... | true = {!!} -- e? but arity is different
  ... | false = var x
- assign' (const x) [] v e = {!!}
- assign' (b ′ b₁) [] v e = {!!}
- assign' (< x > b) [] v e = {!!}
- assign' (b , b₁) [] v e = {!!}
- assign' ([ b ]• k) [] v e = {!!}
- assign' b (x ∷ l) v e = {!!}
+ assign' (const x) [] v e  = const x
+ assign' (a↠b ′ a) [] v e  = a↠b ′ (assign' a (fv e) v e)
+ assign' (< a > b) [] v e  with Var.Label a == Var.Label v
+ ... | true  = < a > b
+ ... | false = < a > assign' b [] v e
+ assign' (a , as)  [] v e  = assign' a [] v e , assign' as [] v e
+ assign' ([ a ]• i) [] v e = [ assign' a [] v e ]• i
+ assign' b (x ∷ xs) v e     = {!!} --TBD
  {-
  assign' (var x)      [] v e with Var.Label x == v
  assign' {α} {_} (var x) [] v e | true  = {!!}
