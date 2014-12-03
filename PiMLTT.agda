@@ -18,16 +18,6 @@ module Arity where
   a ⊗ [[ xs ]] = [[ a ∷ xs ]]
   a ⊗ (b ↠ c) = [[ a ∷ b ↠ c ∷ [] ]]
 
-  {-
-  _≟_ : Decidable {A = ℕ} _≡_
-  zero  ≟ zero   = yes refl
-  suc m ≟ suc n  with m ≟ n
-  suc m ≟ suc .m | yes refl = yes refl
-  suc m ≟ suc n  | no prf   = no (prf ∘ PropEq.cong pred)
-  zero  ≟ suc n  = no λ()
-  suc m ≟ zero   = no λ()
-  -}
-
   Thm : -- justification of the def. of ⊗
    ∀ (a : Arity) →
    a ≣ O ⊎
@@ -63,67 +53,71 @@ module Expression (Val : Arity → Set) where
  open import Data.Bool
 
  -- Variables.
+ {-
  record Var (a : Arity) : Set where
    field
      Label : String
+ -}
 
  -- Constants. TODO: use this definition instead of Val
  data Const : Arity → Set where
 
  data Expr : Arity → Set where
-    var    : {α : Arity} → Var α → Expr α 
+    var    : {α : Arity} → String → Expr α 
     const  : {α : Arity} → Val α → Expr α
     -- TODO def-const
     _′_    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
-    <_>_ : {α β : Arity} → Var α → Expr β → Expr (α ↠ β) 
+    <_∈_>_ : {α β : Arity} → String → (α : Arity) → Expr β → Expr (α ↠ β) 
     _,_    : {α : Arity} {n : ℕ} {as : Vec Arity n} →
                Expr α → Expr [[ as ]] → Expr [[ α ∷ as ]]
     [_]•_  : {α : Arity} →
                Expr α → (k : Fin (length α)) → Expr (nth α k)
  infixr 10 _,_
- infixl 12 <_>_
+ infixl 12 <_∈_>_
 
  open import Data.List
 
  free-variables : {β : Arity} → Expr β → List (String × Arity)
- free-variables {β} (var x) = ((Var.Label x) , β) ∷ []
+ free-variables {β} (var x) = (x , β) ∷ []
  free-variables (const x)   = []
  free-variables (a↠b ′ a)   = free-variables a
- free-variables (< x > e)   = dropWhile (λ v → proj₁ v == Var.Label x) (free-variables e)
+ free-variables (< x ∈ a > e) = dropWhile (λ v → proj₁ v == x) (free-variables e)
  free-variables (a , as)    = free-variables a Data.List.++ free-variables as
  free-variables ([ e ]• k)  = free-variables e
  -- TODO think duplication?
  fv = free-variables
 
- α-conv : {α β : Arity} → Expr α → Var β → Expr α
- α-conv (< x > e) new = < {!!} > {!!} -- α-conv is used just this case.
+ postulate
+  _has_ : {α β : Arity} → Expr α → String → Bool
+  _is-in_as-free-var : {β : Arity} → String → Expr β → Bool
+  next : String → String
+  replace : {α : Arity} → Expr α → String → Expr α
+
+ α-conv : {α : Arity} → Expr α → String → Expr α
+ --α-conv (< x ∈ a > e) new = < new ∈ a > {!!} -- α-conv is used just this case.
+ α-conv (< x ∈ a > e) new = < {!!} ∈ {!!} > {!!}
  α-conv expr new = expr -- other case
 
- postulate
-  _has_ : {α β : Arity} → Expr α → Var β → Bool
-  _is-in_as-free-var : {α β : Arity} → Var α → Expr β → Bool
-  next : {α : Arity} → Var α → Var α
-
  assign' : {α β : Arity} → Expr β → 
-             List (String × Arity) → Var α → Expr α → Expr β
- assign' (var x) [] v e with Var.Label x == Var.Label v
+             List (String × Arity) → String → Expr α → Expr β
+ assign' (var x) [] v e with x == v
  ... | true = {!!} -- e? but arity is different
  ... | false = var x
  assign' (const x) [] v e  = const x
  assign' (a↠b ′ a) [] v e  = {!!} -- a↠b ′ (assign' a (fv e) v e)
- assign' (< a > b) [] v e  with Var.Label a == Var.Label v
- ... | true  = < a > b
+ assign' (< x ∈ a > b) [] v e with x == v
+ ... | true  = < x ∈ a > b
  ... | false with b has v
- ... | false = < a > b
- ... | true with a is-in e as-free-var
- ... | true = assign' (α-conv (< a > b) (next a)) [] v e -- maybe not terminated
- ... | false = < a > assign' b [] v e
+ ... | false = < x ∈ a > b
+ ... | true with x is-in e as-free-var
+ ... | true = assign' (α-conv (< x ∈ a > b) (next x)) [] v e -- maybe not terminated
+ ... | false = < x ∈ a > assign' b [] v e
  assign' (a , as)  [] v e   = assign' a [] v e , assign' as [] v e
  assign' ([ a ]• i) [] v e  = [ assign' a [] v e ]• i
  assign' b (x ∷ xs) v e     = {!!} --TBD
 
  -- substitution
- _[_≔_] : {α β : Arity} → Expr β → Var α → Expr α → Expr β
+ _[_≔_] : {α β : Arity} → Expr β → String → Expr α → Expr β
  _[_≔_] {α} {β} b v e = assign' b [] v e
 
 {-
