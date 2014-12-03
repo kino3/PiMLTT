@@ -67,7 +67,7 @@ module Expression (Val : Arity → Set) where
     const  : {α : Arity} → Val α → Expr α
     -- TODO def-const
     _′_    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
-    <_∈_>_ : {α β : Arity} → String → (α : Arity) → Expr β → Expr (α ↠ β) 
+    <_∈_>_ : {β : Arity} → String → (α : Arity) → Expr β → Expr (α ↠ β) 
     _,_    : {α : Arity} {n : ℕ} {as : Vec Arity n} →
                Expr α → Expr [[ as ]] → Expr [[ α ∷ as ]]
     [_]•_  : {α : Arity} →
@@ -88,15 +88,11 @@ module Expression (Val : Arity → Set) where
  fv = free-variables
 
  postulate
-  _has_ : {α β : Arity} → Expr α → String → Bool
+  _has_ : {α : Arity} → Expr α → String → Bool
   _is-in_as-free-var : {β : Arity} → String → Expr β → Bool
   next : String → String
   replace : {α : Arity} → Expr α → String → Expr α
-
- α-conv : {α : Arity} → Expr α → String → Expr α
- --α-conv (< x ∈ a > e) new = < new ∈ a > {!!} -- α-conv is used just this case.
- α-conv (< x ∈ a > e) new = < {!!} ∈ {!!} > {!!}
- α-conv expr new = expr -- other case
+  α-conv : {α β : Arity} → Expr (α ↠ β) → String → Expr (α ↠ β)
 
  assign' : {α β : Arity} → Expr β → 
              List (String × Arity) → String → Expr α → Expr β
