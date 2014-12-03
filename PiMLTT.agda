@@ -88,11 +88,30 @@ module Expression (Val : Arity → Set) where
  fv = free-variables
 
  postulate
-  _has_ : {α : Arity} → Expr α → String → Bool
   _is-in_as-free-var : {β : Arity} → String → Expr β → Bool
   next : String → String
-  replace : {α : Arity} → Expr α → String → Expr α
-  α-conv : {α β : Arity} → Expr (α ↠ β) → String → Expr (α ↠ β)
+ 
+ replace : {α : Arity} → Expr α → String → String → Expr α
+ replace (var x) old new with x == old
+ ... | true = var new
+ ... | false = var x
+ replace (const x) old new = const x
+ replace (a↠b ′ a) old new = replace a↠b old new ′ replace a old new
+ replace (< x ∈ α > e) old new = {!!}
+ replace (e , e₁) old new = {!!}
+ replace ([ e ]• k) old new = {!!}
+
+ _has_ : {α : Arity} → Expr α → String → Bool
+ var x has c         = x == c
+ const x has c       = false
+ (a↠b ′ a) has c     = (a↠b has c) ∨ (a has c)
+ (< x ∈ α > e) has c = (x == c) ∨ (e has c)
+ (a , as) has c      = a has c ∨ as has c
+ ([ e ]• k) has c    = e has c
+  
+ α-conv : {α : Arity} → Expr α → String → Expr α
+ α-conv (< x ∈ α > e) new = < new ∈ α > replace e x new
+ α-conv other _ = other
 
  assign' : {α β : Arity} → Expr β → 
              List (String × Arity) → String → Expr α → Expr β
@@ -116,7 +135,6 @@ module Expression (Val : Arity → Set) where
  _[_≔_] : {α β : Arity} → Expr β → String → Expr α → Expr β
  _[_≔_] {α} {β} b v e = assign' b [] v e
 
-{-
  infix 5 _≡_∈_
  data _≡_∈_ : {α : Arity} → Expr α → Expr α → Arity → Set where
    var-eq   : {α : Arity} → {x : String} → var {α} x ≡ var x ∈ α
@@ -130,4 +148,4 @@ module Expression (Val : Arity → Set) where
    ξ-rule   : {α β : Arity} {x : String} {b b' : Expr β} →
                b ≡ b' ∈ β → < x ∈ α > b ≡ < x ∈ α > b' ∈ α ↠ β
    -- α-rule
--}
+
