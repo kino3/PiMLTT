@@ -95,37 +95,36 @@ module Expression (Val : Arity → Set) where
  -- TODO think duplication?
  fv = free-variables
 
+ α-conv : {α β : Arity} → Expr α → Var β → Expr α
+ α-conv (< x > e) new = < {!!} > {!!} -- α-conv is used just this case.
+ α-conv expr new = expr -- other case
+
+ postulate
+  _has_ : {α β : Arity} → Expr α → Var β → Bool
+  _is-in_as-free-var : {α β : Arity} → Var α → Expr β → Bool
+  next : {α : Arity} → Var α → Var α
+
  assign' : {α β : Arity} → Expr β → 
              List (String × Arity) → Var α → Expr α → Expr β
  assign' (var x) [] v e with Var.Label x == Var.Label v
  ... | true = {!!} -- e? but arity is different
  ... | false = var x
  assign' (const x) [] v e  = const x
- assign' (a↠b ′ a) [] v e  = a↠b ′ (assign' a (fv e) v e)
+ assign' (a↠b ′ a) [] v e  = {!!} -- a↠b ′ (assign' a (fv e) v e)
  assign' (< a > b) [] v e  with Var.Label a == Var.Label v
  ... | true  = < a > b
+ ... | false with b has v
+ ... | false = < a > b
+ ... | true with a is-in e as-free-var
+ ... | true = assign' (α-conv (< a > b) (next a)) [] v e -- maybe not terminated
  ... | false = < a > assign' b [] v e
- assign' (a , as)  [] v e  = assign' a [] v e , assign' as [] v e
- assign' ([ a ]• i) [] v e = [ assign' a [] v e ]• i
+ assign' (a , as)  [] v e   = assign' a [] v e , assign' as [] v e
+ assign' ([ a ]• i) [] v e  = [ assign' a [] v e ]• i
  assign' b (x ∷ xs) v e     = {!!} --TBD
- {-
- assign' (var x)      [] v e with Var.Label x == v
- assign' {α} {_} (var x) [] v e | true  = {!!}
- ... | false = var x
- assign' (const b)      [] v e = const b
- assign' (d ′ a)        [] v e = d ′ (assign' a [] v e)
- assign' (< x ∈ α > b)  [] v e with x == v -- = {!!} -- α-conv
- ... | true  = {!!} -- we need α-conversion? which change x to another letter.
- ... | false = (< v ∈ {!!} > (< x ∈ α > b)) ′ e
- assign' (a , as)       [] v e = assign' a [] v e , assign' as [] v e
- assign' ([ a ]• i)     [] v e = [ assign' a [] v e ]• i
- assign' x        (y ∷ ys) v e = {!!}
- -}
 
  -- substitution
  _[_≔_] : {α β : Arity} → Expr β → Var α → Expr α → Expr β
  _[_≔_] {α} {β} b v e = assign' b [] v e
- -- TODO provided that no free variables in a becomes bound in b [ x ≔ a ].
 
 {-
  infix 5 _≡_∈_
