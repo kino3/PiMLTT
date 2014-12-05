@@ -44,6 +44,17 @@ module Arity where
 
 open Arity
 
+module Var where
+ open import Data.String
+ record Var : Set where
+   constructor _∈_
+   field
+     l : String
+     a : Arity
+
+ hoge : Var
+ hoge = "a" ∈ O
+
 module Expression (Val : Arity → Set) where
  open import Data.Nat using (ℕ)
  open import Data.String
@@ -51,28 +62,23 @@ module Expression (Val : Arity → Set) where
  open import Data.Fin
  open import Data.Product
  open import Data.Bool
-
- record Var : Set where
-   constructor _∈_
-   field
-     label : String
-     --arity : Arity
+ open Var
 
  data Expr : Arity → Set where
-    var    : (α : Arity) → String → Expr α 
+    var    : (v : Var) → Expr (Var.a v) 
     const  : {α : Arity} → Val α → Expr α
     -- TODO def-const
     _′_    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
-    <_∈_>_ : {β : Arity} → String → (α : Arity) → Expr β → Expr (α ↠ β) 
+    <_>_ : {β : Arity} → (v : Var) → Expr β → Expr (Var.a v ↠ β) 
     _,_    : {α : Arity} {n : ℕ} {as : Vec Arity n} →
                Expr α → Expr [[ as ]] → Expr [[ α ∷ as ]]
     [_]•_  : {α : Arity} →
                Expr α → (k : Fin (length α)) → Expr (nth α k)
  infixr 10 _,_
- infixl 12 <_∈_>_
+ infixl 12 <_>_
 
  open import Data.List
-
+{-
  free-variables : {β : Arity} → Expr β → List (String × Arity)
  free-variables (var α x) = (x , α) ∷ []
  free-variables (const x)   = []
@@ -125,7 +131,7 @@ module Expression (Val : Arity → Set) where
  -- substitution
  _[_≔_] : {β : Arity} → Expr β → String → (α : Arity) → Expr α → Expr β
  _[_≔_] {β} b v α e = assign' b [] v e
-
+-}
 {-
  infix 5 _≡_∈_
  data _≡_∈_ : {α : Arity} → Expr α → Expr α → Arity → Set where
