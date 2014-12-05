@@ -47,13 +47,19 @@ open Arity
 module Expression (Val : Arity → Set) where
  open import Data.Nat using (ℕ)
  open import Data.String
- open import Data.Vec
+ open import Data.Vec hiding (_∈_)
  open import Data.Fin
  open import Data.Product
  open import Data.Bool
 
+ record Var : Set where
+   constructor _∈_
+   field
+     label : String
+     --arity : Arity
+
  data Expr : Arity → Set where
-    var    : {α : Arity} → String → Expr α 
+    var    : (α : Arity) → String → Expr α 
     const  : {α : Arity} → Val α → Expr α
     -- TODO def-const
     _′_    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
@@ -68,7 +74,7 @@ module Expression (Val : Arity → Set) where
  open import Data.List
 
  free-variables : {β : Arity} → Expr β → List (String × Arity)
- free-variables {β} (var x) = (x , β) ∷ []
+ free-variables (var α x) = (x , α) ∷ []
  free-variables (const x)   = []
  free-variables (a↠b ′ a)   = free-variables a↠b Data.List.++ free-variables a
  free-variables (< x ∈ a > e) = dropWhile (λ v → proj₁ v == x) (free-variables e)
@@ -82,12 +88,12 @@ module Expression (Val : Arity → Set) where
 
  open import Data.Nat
  _is-in_as-free-var : {β : Arity} → String → Expr β → Bool
- x is-in e as-free-var = ? --Data.List.length (takeWhile (λ v → proj₁ v == x) (fv e)))
+ x is-in e as-free-var = {!!} --Data.List.length (takeWhile (λ v → proj₁ v == x) (fv e)))
  
  replace : {α : Arity} → Expr α → String → String → Expr α
- replace (var x) old new with x == old
- ... | true = var new
- ... | false = var x
+ replace (var α x) old new with x == old
+ ... | true = var α new
+ ... | false = var α x
  replace (const x) old new = const x
  replace (a↠b ′ a) old new = replace a↠b old new ′ replace a old new
  replace (< x ∈ α > e) old new with x == old
@@ -100,11 +106,11 @@ module Expression (Val : Arity → Set) where
  α-conv (< x ∈ α > e) new = replace (< x ∈ α > e) x new
  α-conv other _ = other
 
- assign' : {α β : Arity} → Expr β → 
-             List (String × Arity) → String → Expr α → Expr β
- assign' (var x) [] v e with x == v
+ assign' : {β : Arity} → Expr β → 
+             List (String × Arity) → String → (α : Arity) → Expr α → Expr β
+ assign' {β} (var .β x) [] v α e with x == v
  ... | true = {!!} -- e? but arity is different
- ... | false = var x
+ ... | false = var β x
  assign' (const x) [] v e  = const x
  assign' (a↠b ′ a) [] v e  = {!!} -- a↠b ′ (assign' a (fv e) v e)
  assign' (< x ∈ a > b) [] v e with x == v
@@ -117,9 +123,10 @@ module Expression (Val : Arity → Set) where
  assign' b (x ∷ xs) v e     = {!!} --TBD
 
  -- substitution
- _[_≔_] : {α β : Arity} → Expr β → String → Expr α → Expr β
- _[_≔_] {α} {β} b v e = assign' b [] v e
+ _[_≔_] : {β : Arity} → Expr β → String → (α : Arity) → Expr α → Expr β
+ _[_≔_] {β} b v α e = assign' b [] v e
 
+{-
  infix 5 _≡_∈_
  data _≡_∈_ : {α : Arity} → Expr α → Expr α → Arity → Set where
    var-eq   : {α : Arity} → {x : String} → var {α} x ≡ var x ∈ α
@@ -134,3 +141,4 @@ module Expression (Val : Arity → Set) where
                b ≡ b' ∈ β → < x ∈ α > b ≡ < x ∈ α > b' ∈ α ↠ β
    -- α-rule
 
+-}
