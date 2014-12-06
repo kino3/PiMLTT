@@ -17,7 +17,34 @@ module Arity where
   _⊗_ : Arity → Arity → Arity
   a ⊗ [[ xs ]] = [[ a ∷ xs ]]
   a ⊗ (b ↠ c) = [[ a ∷ b ↠ c ∷ [] ]]
+  
+  {-
+  open import Relation.Binary
+  open import Relation.Nullary.Core
+  _=a_ : Decidable {A = Arity} _≣_
+  [[ [] ]] =a [[ [] ]] = yes refl
+  [[ [] ]] =a [[ x ∷ x₁ ]] = no (λ ())
+  [[ x ∷ x₁ ]] =a [[ [] ]] = no (λ ())
+  [[ x ∷ xs ]] =a [[ y ∷ ys ]] = {!!}
+  [[ x ]] =a (a2 ↠ a3) = no (λ ())
+  (a1 ↠ a2) =a [[ x ]] = no (λ ())
+  (a1 ↠ a2) =a (a3 ↠ a4) with a1 =a a3 | a2 =a a4
+  ... | yes p1 | yes p2 = yes {!!}
+  ... | _ | _ = {!!}
+  -}
 
+  open import Data.Bool
+  _=a_ : Arity → Arity → Bool
+  [[ [] ]] =a [[ [] ]] = true
+  [[ [] ]] =a [[ x ∷ x₁ ]] = false
+  [[ x ∷ x₁ ]] =a [[ [] ]] = false
+  [[ x ∷ xs ]] =a [[ y ∷ ys ]] with x =a y
+  ... | true = [[ xs ]] =a [[ ys ]]
+  ... | false = false
+  [[ x ]] =a (a2 ↠ a3) = false
+  (a1 ↠ a2) =a [[ x ]] = false
+  (a1 ↠ a2) =a (a3 ↠ a4) = a1 =a a3 ∧ a2 =a a4
+  
   Thm : -- justification of the def. of ⊗
    ∀ (a : Arity) →
    a ≣ O ⊎
@@ -46,6 +73,8 @@ open Arity
 
 module Var where
  open import Data.String
+ open import Data.Bool
+
  record Var : Set where
    constructor _∈_
    field
@@ -54,6 +83,9 @@ module Var where
 
  hoge : Var
  hoge = "a" ∈ O
+
+ _=v_ : Var → Var → Bool
+ (l1 ∈ a1) =v (l2 ∈ a2) = (l1 == l2) ∧ a1 =a a2
 
 module Expression (Val : Arity → Set) where
  open import Data.Nat using (ℕ)
@@ -78,12 +110,12 @@ module Expression (Val : Arity → Set) where
  infixl 12 <_>_
 
  open import Data.List
-{-
+
  free-variables : {β : Arity} → Expr β → List (String × Arity)
- free-variables (var α x) = (x , α) ∷ []
+ free-variables (var (x ∈ α)) = (x , α) ∷ []
  free-variables (const x)   = []
  free-variables (a↠b ′ a)   = free-variables a↠b Data.List.++ free-variables a
- free-variables (< x ∈ a > e) = dropWhile (λ v → proj₁ v == x) (free-variables e)
+ free-variables (< x > e) = dropWhile (λ v → proj₁ v == Var.l x) (free-variables e)
  free-variables (a , as)    = free-variables a Data.List.++ free-variables as
  free-variables ([ e ]• k)  = free-variables e
  -- TODO think duplication?
@@ -93,18 +125,18 @@ module Expression (Val : Arity → Set) where
   change : {α : Arity} → String → Expr α → String
 
  open import Data.Nat
- _is-in_as-free-var : {β : Arity} → String → Expr β → Bool
+ _is-in_as-free-var : {β : Arity} → Var → Expr β → Bool
  x is-in e as-free-var = {!!} --Data.List.length (takeWhile (λ v → proj₁ v == x) (fv e)))
  
  replace : {α : Arity} → Expr α → String → String → Expr α
- replace (var α x) old new with x == old
- ... | true = var α new
- ... | false = var α x
+ replace (var (x ∈ α)) old new with x == old
+ ... | true  = var (new ∈ α)
+ ... | false = var (x ∈ α)
  replace (const x) old new = const x
  replace (a↠b ′ a) old new = replace a↠b old new ′ replace a old new
- replace (< x ∈ α > e) old new with x == old
- ... | true  = < new ∈ α > replace e old new
- ... | false = < x ∈ α > replace e old new
+ replace (< x > e) old new with Var.l x == old
+ ... | true  = {!!} --< new > replace e old new
+ ... | false = < x > replace e old new
  replace (a , as) old new = replace a old new , replace as old new
  replace ([ a ]• i) old new = [ replace a old new ]• i
 
@@ -113,25 +145,25 @@ module Expression (Val : Arity → Set) where
  α-conv other _ = other
 
  assign' : {β : Arity} → Expr β → 
-             List (String × Arity) → String → (α : Arity) → Expr α → Expr β
- assign' {β} (var .β x) [] v α e with x == v
+             List (String × Arity) → (v : Var) → Expr (Var.a v) → Expr β
+ assign' (var (x ∈ a)) [] v e with (x ∈ a) =v v
  ... | true = {!!} -- e? but arity is different
- ... | false = var β x
+ ... | false = var (x ∈ a)
  assign' (const x) [] v e  = const x
  assign' (a↠b ′ a) [] v e  = {!!} -- a↠b ′ (assign' a (fv e) v e)
- assign' (< x ∈ a > b) [] v e with x == v
- ... | true  = < x ∈ a > b
+ assign' (< x > b) [] v e with {!!}
+ ... | true  = < x > b
  ... | false with x is-in e as-free-var
- ... | true = assign' (α-conv (< x ∈ a > b) (change x e)) [] v e -- maybe not terminated
- ... | false = < x ∈ a > assign' b [] v e
+ ... | true = {!!} --assign' (α-conv (< x > b) ?) [] v e -- maybe not terminated
+ ... | false = < x > assign' b [] v e
  assign' (a , as)  [] v e   = assign' a [] v e , assign' as [] v e
  assign' ([ a ]• i) [] v e  = [ assign' a [] v e ]• i
  assign' b (x ∷ xs) v e     = {!!} --TBD
 
  -- substitution
- _[_≔_] : {β : Arity} → Expr β → String → (α : Arity) → Expr α → Expr β
- _[_≔_] {β} b v α e = assign' b [] v e
--}
+ _[_≔_] : {β : Arity} → Expr β → (v : Var) → Expr (Var.a v) → Expr β
+ _[_≔_] {β} b v e = assign' b [] v e
+
 {-
  infix 5 _≡_∈_
  data _≡_∈_ : {α : Arity} → Expr α → Expr α → Arity → Set where
