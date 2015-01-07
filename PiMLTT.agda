@@ -3,7 +3,7 @@ module PiMLTT where
 module Arity where
   open import Data.Nat hiding (_⊔_)
   open import Data.Vec
-  open import Relation.Binary.Core renaming (_≡_ to _≣_)
+  open import Relation.Binary.Core
   open import Data.Sum
   open import Data.Product
   open import Data.Fin
@@ -17,22 +17,33 @@ module Arity where
   _⊗_ : Arity → Arity → Arity
   a ⊗ [[ xs ]] = [[ a ∷ xs ]]
   a ⊗ (b ↠ c) = [[ a ∷ b ↠ c ∷ [] ]]
-  
-  {-
+
+  congA : {n m : ℕ} {x y : Arity} {xs : Vec Arity n} {ys : Vec Arity m}
+   → x ≡ y → [[ xs ]] ≡ [[ ys ]] → [[ x ∷ xs ]] ≡ [[ y ∷ ys ]]
+  congA refl refl = refl
+
+  congA2 : {x1 y1 x2 y2 : Arity}
+   → x1 ≡ y1 → x2 ≡ y2 → x1 ↠ x2 ≡ y1 ↠ y2
+  congA2 refl refl = refl
+
   open import Relation.Binary
   open import Relation.Nullary.Core
-  _=a_ : Decidable {A = Arity} _≣_
+  _=a_ : Decidable {A = Arity} _≡_
   [[ [] ]] =a [[ [] ]] = yes refl
   [[ [] ]] =a [[ x ∷ x₁ ]] = no (λ ())
   [[ x ∷ x₁ ]] =a [[ [] ]] = no (λ ())
-  [[ x ∷ xs ]] =a [[ y ∷ ys ]] = {!!}
+  [[ x ∷ xs ]] =a [[ y ∷ ys ]] with x =a y | [[ xs ]] =a [[ ys ]]
+  ... | yes p1 | yes p2 = yes (congA p1 p2)
+  ... | yes p | no ¬p = no {!!}
+  ... | no ¬p | yes p = no {!!}
+  ... | no ¬p | no ¬p₁ = no {!!}
   [[ x ]] =a (a2 ↠ a3) = no (λ ())
   (a1 ↠ a2) =a [[ x ]] = no (λ ())
-  (a1 ↠ a2) =a (a3 ↠ a4) with a1 =a a3 | a2 =a a4
-  ... | yes p1 | yes p2 = yes {!!}
-  ... | _ | _ = {!!}
-  -}
+  (a1 ↠ a2) =a (a3 ↠ a4) with a1 =a a3 | a2 =a a4 
+  ... | yes p1 | yes p2 = yes (congA2 p1 p2)
+  ... | _ | _ = no {!!}
 
+  {-
   open import Data.Bool
   _=a_ : Arity → Arity → Bool
   [[ [] ]] =a [[ [] ]] = true
@@ -44,12 +55,13 @@ module Arity where
   [[ x ]] =a (a2 ↠ a3) = false
   (a1 ↠ a2) =a [[ x ]] = false
   (a1 ↠ a2) =a (a3 ↠ a4) = a1 =a a3 ∧ a2 =a a4
+  -}
   
   Thm : -- justification of the def. of ⊗
    ∀ (a : Arity) →
-   a ≣ O ⊎
-   (Σ[ b ∈ Arity ] Σ[ c ∈ Arity ] a ≣ b ⊗ c) ⊎
-   (Σ[ b ∈ Arity ] Σ[ c ∈ Arity ] a ≣ b ↠ c)
+   a ≡ O ⊎
+   (Σ[ b ∈ Arity ] Σ[ c ∈ Arity ] a ≡ b ⊗ c) ⊎
+   (Σ[ b ∈ Arity ] Σ[ c ∈ Arity ] a ≡ b ↠ c)
   Thm [[ [] ]] = inj₁ refl
   Thm [[ x ∷ xs ]] = inj₂ (inj₁ (x , ([[ xs ]] , refl)))
   Thm (a1 ↠ a2) = inj₂ (inj₂ (a1 , (a2 , refl)))
@@ -73,7 +85,7 @@ open Arity
 
 module Var where
  open import Data.String
- open import Data.Bool
+ --open import Data.Bool
 
  record Var : Set where
    constructor _∈_
@@ -84,8 +96,12 @@ module Var where
  hoge : Var
  hoge = "a" ∈ O
 
- _=v_ : Var → Var → Bool
- (l1 ∈ a1) =v (l2 ∈ a2) = (l1 == l2) ∧ a1 =a a2
+ open import Relation.Binary.Core
+ open import Relation.Nullary.Core
+ _=v_ : Decidable {A = Var} _≡_
+ (l ∈ a) =v (l2 ∈ a2) with a =a a2 | l ≟ l2
+ (l ∈ a) =v (.l ∈ .a) | yes refl | yes refl = yes refl
+ (l ∈ a) =v (l2 ∈ a2) | _ | _ = no {!!}
 
 module Expression (Val : Arity → Set) where
  open import Data.Nat using (ℕ)
@@ -109,6 +125,7 @@ module Expression (Val : Arity → Set) where
  infixr 10 _,_
  infixl 12 <_>_
 
+ {-
  open import Data.List
 
  free-variables : {β : Arity} → Expr β → List (String × Arity)
@@ -143,26 +160,43 @@ module Expression (Val : Arity → Set) where
  α-conv : {α : Arity} → Expr α → String → Expr α
  α-conv (< x ∈ α > e) new = replace (< x ∈ α > e) x new
  α-conv other _ = other
+ -}
+ open import Relation.Binary.Core
 
- assign' : {β : Arity} → Expr β → 
-             List (String × Arity) → (v : Var) → Expr (Var.a v) → Expr β
- assign' (var (x ∈ a)) [] v e with (x ∈ a) =v v
- ... | true = {!!} -- e? but arity is different
- ... | false = var (x ∈ a)
- assign' (const x) [] v e  = const x
- assign' (a↠b ′ a) [] v e  = {!!} -- a↠b ′ (assign' a (fv e) v e)
- assign' (< x > b) [] v e with {!!}
+ --_≟_ : Decidable {A = Expr} _≡_
+ --a ≟ b = ?
+
+ --func [[ x ]] (b ↠ b₁) ()
+ --func (a ↠ a₁) [[ x ]] ()
+ --func (a ↠ a₁) (.a ↠ .a₁) refl c = c
+
+ {-
+ assign' : {β : Arity} → Expr β → (v : Var) → Expr (Var.a v) → Expr β
+ assign' (var (x ∈ b)) v e with b =a Var.a v
+ ... | true = func {!!} {!!} {!!} e -- e? but arity is different ≟
+ ... | false = var (x ∈ b)
+ assign' (const x) v e  = const x
+ assign' (a↠b ′ a) v e  = {!!} -- a↠b ′ (assign' a (fv e) v e)
+ assign' (< x > b) v e with {!!}
  ... | true  = < x > b
  ... | false with x is-in e as-free-var
  ... | true = {!!} --assign' (α-conv (< x > b) ?) [] v e -- maybe not terminated
- ... | false = < x > assign' b [] v e
- assign' (a , as)  [] v e   = assign' a [] v e , assign' as [] v e
- assign' ([ a ]• i) [] v e  = [ assign' a [] v e ]• i
- assign' b (x ∷ xs) v e     = {!!} --TBD
+ ... | false = < x > assign' b v e
+ assign' (a , as)  v e   = assign' a v e , assign' as v e
+ assign' ([ a ]• i) v e  = [ assign' a v e ]• i
+ -}
 
  -- substitution
+ open import Relation.Nullary.Core
  _[_≔_] : {β : Arity} → Expr β → (v : Var) → Expr (Var.a v) → Expr β
- _[_≔_] {β} b v e = assign' b [] v e
+ var x [ v ≔ e ] with x =v v
+ var x [ .x ≔ e ] | yes refl = e
+ var x [ v ≔ e ] | no _ = var x
+ const c [ v ≔ e ]     = const c
+ (a↠b ′ a) [ v ≔ e ]   = (a↠b [ v ≔ e ]) ′ (a [ v ≔ e ])
+ (< x > b) [ v ≔ e ]   = {!!}
+ (a , as) [ v ≔ e ]    = (a [ v ≔ e ]) , (as [ v ≔ e ])
+ ([ a ]• i) [ v ≔ e ]  = [ a [ v ≔ e ] ]• i
 
 {-
  infix 5 _≡_∈_
