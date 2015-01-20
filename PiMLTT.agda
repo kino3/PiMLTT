@@ -113,7 +113,7 @@ module Expression (Val : Arity → Set) where
  infixr 10 _,_
  infixl 12 <_>_
 
- open import Data.List renaming (_++_ to _L++_; length to L-length)
+ open import Data.List renaming (_++_ to _L++_)
  free-variables : {β : Arity} → Expr β → List Var
  free-variables (var (x ∈ α)) = (x ∈ α) ∷ []
  free-variables (const x)   = []
