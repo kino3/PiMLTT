@@ -36,7 +36,7 @@ module Arity where
   [[ x ∷ x₁ ]] =a [[ [] ]] = no (λ ())
   [[ x ∷ xs ]] =a [[ y ∷ ys ]] with x =a y | [[ xs ]] =a [[ ys ]]
   ... | yes p1 | yes p2 = yes (congA p1 p2)
-  ... | yes x=y | no xs≠ys = no ?
+  ... | yes x=y | no xs≠ys = no {!!}
   ... | no ¬p | yes p = no {!!}
   ... | no ¬p | no ¬p₁ = no {!!}
   [[ x ]] =a (a2 ↠ a3) = no (λ ())
@@ -113,25 +113,20 @@ module Expression (Val : Arity → Set) where
  infixr 10 _,_
  infixl 12 <_>_
 
- {-
- open import Data.List
-
- free-variables : {β : Arity} → Expr β → List (String × Arity)
- free-variables (var (x ∈ α)) = (x , α) ∷ []
+ open import Data.List renaming (_++_ to _L++_; length to L-length)
+ free-variables : {β : Arity} → Expr β → List Var
+ free-variables (var (x ∈ α)) = (x ∈ α) ∷ []
  free-variables (const x)   = []
- free-variables (a↠b ′ a)   = free-variables a↠b Data.List.++ free-variables a
- free-variables (< x > e) = dropWhile (λ v → proj₁ v == Var.l x) (free-variables e)
- free-variables (a , as)    = free-variables a Data.List.++ free-variables as
+ free-variables (a↠b ′ a)   = free-variables a↠b L++ free-variables a
+ free-variables (< x > e)   = dropWhile (λ v → Var.l v == Var.l x) (free-variables e)
+ free-variables (a , as)    = free-variables a L++ free-variables as
  free-variables ([ e ]• k)  = free-variables e
  -- TODO think duplication?
  fv = free-variables
 
- postulate
-  change : {α : Arity} → String → Expr α → String
-
  open import Data.Nat
  _is-in_as-free-var : {β : Arity} → Var → Expr β → Bool
- x is-in e as-free-var = {!!} --Data.List.length (takeWhile (λ v → proj₁ v == x) (fv e)))
+ x is-in e as-free-var = any (λ v → Var.l v == Var.l x) (fv e)
  
  replace : {α : Arity} → Expr α → String → String → Expr α
  replace (var (x ∈ α)) old new with x == old
@@ -145,21 +140,26 @@ module Expression (Val : Arity → Set) where
  replace (a , as) old new = replace a old new , replace as old new
  replace ([ a ]• i) old new = [ replace a old new ]• i
 
- α-conv : {α : Arity} → Expr α → String → Expr α
- α-conv (< x ∈ α > e) new = replace (< x ∈ α > e) x new
- α-conv other _ = other
- -}
+ α-conv : {α : Arity} → Expr α → Expr α
+ α-conv (< x ∈ α > e) = {!!} --replace (< x ∈ α > e) x new TODO
+ α-conv other = other
+
 
  -- substitution
  open import Relation.Binary.Core
  open import Relation.Nullary.Core
  _[_≔_] : {β : Arity} → Expr β → (v : Var) → Expr (Var.a v) → Expr β
+ {-# NON_TERMINATING #-}
  var x [ v ≔ e ] with x =v v
  var x [ .x ≔ e ] | yes refl = e
  var x [ v ≔ e ]  | no _     = var x
  const c [ v ≔ e ]     = const c
- (a↠b ′ a) [ v ≔ e ]   = (a↠b [ v ≔ e ]) ′ (a [ v ≔ e ])
- (< x > b) [ v ≔ e ]   = {!!}
+ (a↠b ′ a) [ v ≔ e ]   = (a↠b) ′ (a [ v ≔ e ]) -- a↠b [ v ≔ e ] ?
+ (< x > b) [ v ≔ e ] with x =v v
+ (< x > b) [ .x ≔ e ] | yes refl = < x > b
+ ... | no _  with x is-in e as-free-var
+ ... | true = (α-conv (< x > b)) [ v ≔ e ]
+ ... | false = < x > (b [ v ≔ e ])
  (a , as) [ v ≔ e ]    = (a [ v ≔ e ]) , (as [ v ≔ e ])
  ([ a ]• i) [ v ≔ e ]  = [ a [ v ≔ e ] ]• i
 
