@@ -27,7 +27,7 @@ module Arity where
   congA2 refl refl = refl
 
   open import Relation.Binary
-  open import Relation.Nullary.Core
+  open import Relation.Nullary --.Core
   open import Function using (_∘_)
   open import Data.Empty
   _=a_ : Decidable {A = Arity} _≡_
@@ -85,7 +85,7 @@ module Var where
  hoge = "a" ∈ O
 
  open import Relation.Binary.Core
- open import Relation.Nullary.Core
+ open import Relation.Nullary --.Core
  _=v_ : Decidable {A = Var} _≡_
  (l ∈ a) =v (l2 ∈ a2) with a =a a2 | l ≟ l2
  (l ∈ a) =v (.l ∈ .a) | yes refl | yes refl = yes refl
@@ -112,7 +112,7 @@ module Expression (Val : Arity → Set) where
                Expr α → (k : Fin (length α)) → Expr (nth α k)
  infixr 10 _,_
  infixl 12 <_>_
-
+{-
  open import Data.List renaming (_++_ to _L++_)
  free-variables : {β : Arity} → Expr β → List Var
  free-variables (var (x ∈ α)) = (x ∈ α) ∷ []
@@ -162,7 +162,7 @@ module Expression (Val : Arity → Set) where
  ... | false = < x > (b [ v ≔ e ])
  (a , as) [ v ≔ e ]    = (a [ v ≔ e ]) , (as [ v ≔ e ])
  ([ a ]• i) [ v ≔ e ]  = [ a [ v ≔ e ] ]• i
-
+-}
 {-
  infix 5 _≡_∈_
  data _≡_∈_ : {α : Arity} → Expr α → Expr α → Arity → Set where

@@ -24,7 +24,7 @@ length (a ↠ b) = suc zero
 a = length ex3
 
 open import Data.Fin hiding (_+_;compare)
-open import Relation.Nullary.Core
+open import Relation.Nullary
 nth : {a : Arity} → Fin (length a) → Arity
 nth {O} n = O
 nth {a1 ⊗ a2} n with length a1 ≤? (toℕ n)
