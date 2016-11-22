@@ -1,9 +1,14 @@
 module Definition.Arity where
 open import Data.Nat
+import Data.Vec as V
 
-{- P.18 Definition 1 -}
+
 -- 2016-10-25
 -- ℕ represents a number of ⊗ which occurs outermost of the expression.
+-- 2016-11-22
+-- the criteria above is not well because inner ⊗ will be forgotten as a type.
+
+{- P.18 Definition 1 -}
 data Arity : ℕ → Set where
   O : Arity 0
   _⊗_ : {a b : ℕ} → Arity a → Arity b → Arity (suc (a + b))
