@@ -1,0 +1,7 @@
+# Keep this file in alphabetic order please!
+*.agdai
+*.tmp
+*.tmp.*
+*~
+\#*\#
+.\#*
