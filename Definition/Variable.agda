@@ -1,7 +1,6 @@
 module Definition.Variable where
 
 open import Definition.Arity
-open import Data.Char
 
 data Var : Arity → Set where
   v : (a : Arity) → Var a 

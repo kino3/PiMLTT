@@ -2,6 +2,7 @@ module Definition.Expression where
 
 open import Definition.Arity
 open import Definition.Variable
+open import Definition.Constant
 
 open import Data.Nat using (ℕ)
 
@@ -10,8 +11,8 @@ open import Data.Fin
 
 
 data Expr : Arity → Set where
-   var    : {a : Arity} → Var a → Expr a 
-   --const  : {α : Arity} → Const α → Expr α
+   var    : {α : Arity} → Var α   → Expr α 
+   const  : {α : Arity} → Const α → Expr α
    -- TODO def-const
    _′_    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
    <_>_ : {α β : Arity} → Var α → Expr β → Expr (α ↠ β) 
