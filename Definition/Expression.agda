@@ -6,7 +6,7 @@ open import Definition.Constant
 
 open import Data.Nat using (ℕ)
 
-open import Data.Vec 
+open import Data.Vec hiding ([_])
 open import Data.Fin
 
 
@@ -14,11 +14,11 @@ data Expr : Arity → Set where
    var    : {α : Arity} → Var α   → Expr α 
    const  : {α : Arity} → Const α → Expr α
    -- TODO def-const
-   _′_    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
+   app    : {α β : Arity} → Expr (α ↠ β) → Expr α → Expr β
    <_>_ : {α β : Arity} → Var α → Expr β → Expr (α ↠ β) 
    _,_    : {α : Arity} {n : ℕ} {as : Vec Arity n} →
               Expr α → Expr [[ as ]] → Expr [[ α ∷ as ]]
-   [_]•_  : {α : Arity} →
+   [_]̇∙_  : {α : Arity} →
               Expr α → (k : Fin (length α)) → Expr (nth α k)
 infixr 10 _,_
 infixl 12 <_>_
@@ -54,39 +54,29 @@ replace ([ a ]• i) old new = [ replace a old new ]• i
 α-conv (< x ∈ α > e) = {!!} --replace (< x ∈ α > e) x new TODO
 α-conv other = other
 
-
+-}
 -- substitution
-open import Relation.Binary.Core
-open import Relation.Nullary.Core
-_[_≔_] : {β : Arity} → Expr β → (v : Var) → Expr (Var.a v) → Expr β
-{-# NON_TERMINATING #-}
-var x [ v ≔ e ] with x =v v
-var x [ .x ≔ e ] | yes refl = e
-var x [ v ≔ e ]  | no _     = var x
-const c [ v ≔ e ]     = const c
-(a↠b ′ a) [ v ≔ e ]   = (a↠b) ′ (a [ v ≔ e ]) -- a↠b [ v ≔ e ] ?
-(< x > b) [ v ≔ e ] with x =v v
-(< x > b) [ .x ≔ e ] | yes refl = < x > b
-... | no _  with x is-in e as-free-var
-... | true = (α-conv (< x > b)) [ v ≔ e ]
-... | false = < x > (b [ v ≔ e ])
-(a , as) [ v ≔ e ]    = (a [ v ≔ e ]) , (as [ v ≔ e ])
-([ a ]• i) [ v ≔ e ]  = [ a [ v ≔ e ] ]• i
+open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Nullary
 
+infix 5 _[_≔_]
+
+_[_≔_] : {α β : Arity} → Expr β → (v : Var α) → Expr α → Expr β
+b [ x ≔ a ] = {!!}
 
 infix 5 _≡_∈_
 data _≡_∈_ : {α : Arity} → Expr α → Expr α → Arity → Set where
-  var-eq   : {α : Arity} → {x : String} → var {α} x ≡ var x ∈ α
-  const-eq : {α : Arity} → (c : Val α) → const c ≡ const c ∈ α
-  -- TODO: def-eq
+  var-eq   : {α : Arity} {x : Var α}   → var x   ≡ var x   ∈ α
+  const-eq : {α : Arity} {c : Const α} → const c ≡ const c ∈ α
+  -- 3. definiendum ≡ definiens
   apply-eq : {α β : Arity} {a a' : Expr (α ↠ β)} {b b' : Expr α} →
                a ≡ a' ∈ (α ↠ β) → b ≡ b' ∈ α →
-               (a ′ b) ≡ (a' ′ b') ∈ β
-  β-rule   : {α β : Arity} {x : String} {b : Expr β} {a : Expr α} → 
-               (< x ∈ α > b) ′ a ≡ b [ x ≔ a ] ∈ β 
-  ξ-rule   : {α β : Arity} {x : String} {b b' : Expr β} →
-              b ≡ b' ∈ β → < x ∈ α > b ≡ < x ∈ α > b' ∈ α ↠ β
+               (app a b) ≡ (app a' b') ∈ β
+  β-rule   : {α β : Arity} {b : Expr β} {a : Expr α} {x : Var α} → 
+               app (< x > b) a ≡ b [ x ≔ a ] ∈ β 
+  ξ-rule   : {α β : Arity} {b b' : Expr β} {x : Var α} →
+              b ≡ b' ∈ β → < x > b ≡ < x > b' ∈ α ↠ β
   -- α-rule
 
 
--}
+
